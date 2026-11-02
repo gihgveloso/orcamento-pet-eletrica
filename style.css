@@ -112,6 +112,8 @@ main { padding: .5rem 0 1.5rem; outline: none; }
   .app-nav button { text-align: left; font-size: .95rem; min-height: 44px; padding: .4rem .9rem; border-top: 0; border-left: 2px solid var(--line); }
   .app-nav button[aria-current="page"] { border-left-color: var(--gold); }
   .content { padding: 0 2.5rem; width: 100%; }
+  /* Sem o menu (boas-vindas), o conteúdo ocupa a largura toda */
+  .app-nav[hidden] + .content { grid-column: 1 / -1; }
 }
 
 /* ---------- Seletor de mês ---------- */
@@ -153,7 +155,7 @@ main { padding: .5rem 0 1.5rem; outline: none; }
 .resumo li.st-over::before { background: var(--over); }
 
 /* ---------- Categorias ---------- */
-.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1.5rem 2rem; }
+.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.5rem 2rem; }
 .cat { padding-top: .8rem; border-top: 3px solid var(--c, var(--line)); }
 .cat-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin-bottom: .5rem; }
 .cat-head h3 { margin: 0; }

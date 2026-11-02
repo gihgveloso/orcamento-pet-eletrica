@@ -1,6 +1,6 @@
 /* Service worker simples: guarda os arquivos do app para funcionar offline.
    AO ATUALIZAR O SITE, aumente o número em CACHE (ex.: v2) para forçar a troca. */
-const CACHE = 'orcamento-pet-v2';
+const CACHE = 'orcamento-pet-v3';
 const ASSETS = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'

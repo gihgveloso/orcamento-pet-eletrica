@@ -51,6 +51,13 @@ Faça em **um celular Android (Chrome)**, **um iPhone (Safari)** e **um computad
 - [ ] Android: menu > "Instalar app"/"Adicionar à tela inicial". O ícone aparece e abre em tela cheia.
 - [ ] iPhone: Compartilhar > "Adicionar à Tela de Início".
 
+## Tema e atalhos
+- [ ] O app abre no tema do aparelho (claro ou escuro). O botão do topo troca de tema e o app lembra da escolha.
+- [ ] Conferir os dois temas em todas as telas: texto legível, barras e gráficos visíveis.
+- [ ] No painel, "Lançar" dentro de uma categoria abre o formulário já com ela marcada.
+- [ ] "Ver lançamentos" dentro de uma categoria abre a lista já filtrada.
+- [ ] O botão "Lançar gasto" aparece no Painel e em Lançamentos, sem cobrir o menu.
+
 ## Acessibilidade e apresentação
 - [ ] Navegar só com Tab/Enter no computador: o foco dourado é sempre visível.
 - [ ] "Modo apresentação" aumenta tudo; conferir legibilidade no projetor do auditório do 1E, do fundo da sala.

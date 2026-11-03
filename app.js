@@ -16,18 +16,18 @@ const MAX_CENTS = 100000000000;  // R$ 1 bilhão, limite de sanidade
 
 /* Ordem de exibição: o futuro primeiro (regra de inverter a ordem). */
 const CATS = [
-  { id: 'liberdade', nome: 'Liberdade financeira', icone: '', cor: '#FFC74B', pct: 25,
+  { id: 'liberdade', nome: 'Liberdade financeira', icone: '', cor: 'var(--cat-liberdade)', pct: 25,
     desc: 'O que você investe para o futuro, separado antes de tudo. Inclui a reserva de emergência.',
     ex: 'Tesouro Selic, CDB, reserva de emergência' },
-  { id: 'conhecimento', nome: 'Conhecimento', icone: '', cor: '#F2EBD7', pct: 5,
+  { id: 'conhecimento', nome: 'Conhecimento', icone: '', cor: 'var(--cat-conhecimento)', pct: 5,
     desc: 'Estudo e desenvolvimento.', ex: 'Cursos, livros, inscrição em congresso' },
-  { id: 'essenciais', nome: 'Essenciais', icone: '', cor: '#A39F93', pct: 40,
+  { id: 'essenciais', nome: 'Essenciais', icone: '', cor: 'var(--cat-essenciais)', pct: 40,
     desc: 'Custo fixo: o que se paga todo mês.', ex: 'Aluguel, contas, seguro, financiamento' },
-  { id: 'conforto', nome: 'Conforto', icone: '', cor: '#B89443', pct: 10,
+  { id: 'conforto', nome: 'Conforto', icone: '', cor: 'var(--cat-conforto)', pct: 10,
     desc: 'O que não é realmente necessário.', ex: 'Streaming, pizza no fim de semana, versão mais cara' },
-  { id: 'metas', nome: 'Metas', icone: '', cor: '#7F9AA1', pct: 10,
+  { id: 'metas', nome: 'Metas', icone: '', cor: 'var(--cat-metas)', pct: 10,
     desc: 'Planos com objetivo definido.', ex: 'Viagem, notebook, compra planejada' },
-  { id: 'prazeres', nome: 'Prazeres', icone: '', cor: '#D07A52', pct: 10,
+  { id: 'prazeres', nome: 'Prazeres', icone: '', cor: 'var(--cat-prazeres)', pct: 10,
     desc: 'Gastos feitos por diversão.', ex: 'Bar com amigos, churrasco, show' }
 ];
 const CAT = Object.fromEntries(CATS.map((c) => [c.id, c]));
@@ -105,10 +105,10 @@ const isCents = (v) => Number.isInteger(v) && v >= 0 && v <= MAX_CENTS;
 /* ---------- 3. Dados (localStorage) ---------- */
 let state;
 let storageOk = true;
-const ui = { view: 'painel', month: currentMonth(), editingId: null, entryType: 'gasto', filterCat: '', search: '' };
+const ui = { presetCat: null, view: 'painel', month: currentMonth(), editingId: null, entryType: 'gasto', filterCat: '', search: '' };
 
 function defaultState() {
-  return { version: DATA_VERSION, onboarded: false, presentation: false, hasExample: false,
+  return { version: DATA_VERSION, onboarded: false, presentation: false, hasExample: false, theme: null,
     baseIncome: 0, basePerc: { ...DEFAULT_PERC }, months: {}, lastExpense: null };
 }
 function newMonth(planned, perc) {
@@ -124,6 +124,7 @@ function sanitizeState(obj) {
   out.onboarded = !!obj.onboarded;
   out.presentation = !!obj.presentation;
   out.hasExample = !!obj.hasExample;
+  out.theme = obj.theme === 'light' || obj.theme === 'dark' ? obj.theme : null;
   out.baseIncome = isCents(obj.baseIncome) ? obj.baseIncome : 0;
   out.basePerc = cleanPerc(obj.basePerc);
   for (const [key, m] of Object.entries(obj.months)) {
@@ -260,13 +261,35 @@ function summarySentences(s) {
   return out;
 }
 
+/* ---------- 4b. Tema claro/escuro ---------- */
+const THEME_COLORS = { dark: '#111923', light: '#F3F5F8' };
+/** Tema escolhido pela pessoa; se nunca escolheu, segue o do aparelho. */
+function effectiveTheme() {
+  if (state.theme) return state.theme;
+  return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme() {
+  const t = effectiveTheme();
+  document.documentElement.dataset.theme = t;
+  const meta = $('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', THEME_COLORS[t]);
+  const btn = $('#btn-tema');
+  if (btn) {
+    const alvo = t === 'dark' ? 'claro' : 'escuro';
+    $('.tema-txt', btn).textContent = `Modo ${alvo}`;
+    btn.setAttribute('aria-label', `Mudar para o modo ${alvo}`);
+  }
+}
+
 /* ---------- 5. Telas ---------- */
 const view = () => $('#view');
 
 function render(focus = false) {
+  applyTheme();
   document.documentElement.classList.toggle('apresentacao', !!state.presentation);
   $('#btn-apresentacao').setAttribute('aria-pressed', String(!!state.presentation));
   const onboarding = !state.onboarded;
+  $('#fab').hidden = onboarding || !(ui.view === 'painel' || ui.view === 'lista');
   $('#app-nav').hidden = onboarding;
   $('#month-bar').hidden = onboarding || ui.view === 'ajuda';
   if (onboarding) { renderOnboarding(); return; }
@@ -413,33 +436,38 @@ function renderPainel() {
   ${suggestionsHTML()}
 
   <section class="section resumo" aria-labelledby="resumo-t">
-    <h2 id="resumo-t">Resumo do mês</h2>
+    <h2 id="resumo-t">Como está o mês</h2>
     <ul>${summarySentences(s).map((x) => `<li class="st-${x.st}">${esc(x.t)}</li>`).join('')}</ul>
   </section>
 
   <section class="section" aria-labelledby="cats-t">
-    <h2 id="cats-t">Por categoria</h2>
+    <h2 id="cats-t">Suas categorias</h2>
     <div class="cats">${CATS.map((c) => catCardHTML(c, s)).join('')}</div>
   </section>
   ${!s.base ? `<div class="empty"><p>Sem renda prevista para ${esc(monthLabel(ui.month))}.</p>
     <button class="btn btn-primary" data-action="nav" data-view="orcamento">Definir orçamento do mês</button></div>` : ''}`;
 }
 function catCardHTML(c, s) {
-  const pl = s.planned[c.id], sp = s.spent[c.id];
+  const pl = s.planned[c.id], sp = s.spent[c.id], left = pl - sp;
   const isLib = c.id === 'liberdade';
-  const st = isLib ? (sp >= pl && pl > 0 ? 'ok' : 'warn') : statusOf(sp, pl);
+  // Liberdade financeira não "estoura": quanto mais, melhor. Por isso tem estado próprio.
+  const st = isLib ? (pl > 0 && sp >= pl ? 'ok' : 'lib') : statusOf(sp, pl);
   const badge = isLib ? (st === 'ok' ? { icon: '✓', label: 'Meta cumprida' } : { icon: '', label: 'Em andamento' }) : STATUS[st];
   const ratio = pl ? sp / pl : 0;
+  let big, lbl;
+  if (isLib) { big = fmt(Math.max(left, 0)); lbl = left > 0 ? 'falta separar' : 'meta do mês cumprida'; }
+  else if (left >= 0) { big = fmt(left); lbl = 'ainda disponível'; }
+  else { big = fmt(-left); lbl = 'acima do planejado'; }
   return `<article class="cat st-${st}" style="--c:${c.cor}">
     <div class="cat-head"><h3>${esc(c.nome)}</h3>
       <span class="badge">${badge.icon ? `<span aria-hidden="true">${badge.icon}</span> ` : ''}${badge.label}</span></div>
-    <dl>
-      <div><dt>Planejado</dt><dd class="money">${fmt(pl)}</dd></div>
-      <div><dt>${isLib ? 'Separado' : 'Gasto'}</dt><dd class="money">${fmt(sp)}</dd></div>
-      <div><dt>${isLib ? 'Falta' : 'Disponível'}</dt><dd class="money">${fmt(pl - sp)}</dd></div>
-    </dl>
+    <p class="cat-main"><span class="big money">${big}</span><span class="lbl">${lbl}</span></p>
     ${barHTML(sp, pl, `${c.nome}: ${pctTxt(ratio)} usado`)}
-    <p class="used">${pl ? `${pctTxt(ratio)} ${isLib ? 'da meta' : 'usado'}` : 'Sem orçamento definido'}</p>
+    <p class="used">${isLib ? 'Separado' : 'Gasto'} <span class="money">${fmt(sp)}</span> ${pl ? `de <span class="money">${fmt(pl)}</span> (${pctTxt(ratio)})` : '(sem orçamento definido)'}</p>
+    <div class="cat-actions">
+      <button type="button" class="btn btn-small" data-action="quick-add" data-cat="${c.id}" aria-label="Lançar em ${esc(c.nome)}">Lançar</button>
+      <button type="button" class="btn-link" data-action="see-cat" data-cat="${c.id}" aria-label="Ver lançamentos de ${esc(c.nome)}">Ver lançamentos</button>
+    </div>
   </article>`;
 }
 function suggestionsHTML() {
@@ -457,11 +485,12 @@ function suggestionsHTML() {
 
 /* ---- Lançar ---- */
 function renderLancar() {
+  const preset = ui.presetCat; ui.presetCat = null;   // categoria escolhida no atalho do painel
   const editing = ui.editingId ? findExpense(ui.editingId)?.item : null;
   if (ui.editingId && !editing) ui.editingId = null;
   if (editing) ui.entryType = 'gasto';
   const isGasto = ui.entryType === 'gasto';
-  const e = editing || { name: '', amount: 0, cat: '', date: defaultDateFor(ui.month), note: '', recurring: false, sub: 'investimento' };
+  const e = editing || { name: '', amount: 0, cat: CAT[preset] ? preset : '', date: defaultDateFor(ui.month), note: '', recurring: false, sub: 'investimento' };
   const names = [...new Set(Object.values(state.months).flatMap((m) => m.expenses.map((x) => x.name)))].slice(-60);
 
   view().innerHTML = `
@@ -490,7 +519,7 @@ function renderLancar() {
     </fieldset>
     <fieldset id="sub-field" ${e.cat === 'liberdade' ? '' : 'hidden'}>
       <legend>Para onde vai?</legend>
-      <div class="chips">${Object.entries(SUBTIPOS).map(([k, v]) => `<label class="chip" style="--c:#FFC74B">
+      <div class="chips">${Object.entries(SUBTIPOS).map(([k, v]) => `<label class="chip" style="--c:var(--cat-liberdade)">
         <input type="radio" name="sub" value="${k}" ${(e.sub || 'investimento') === k ? 'checked' : ''}><span>${v}</span></label>`).join('')}</div>
     </fieldset>` : ''}
     <div class="grid-2">
@@ -599,13 +628,13 @@ function donutSVG(s) {
   const ring = (r, values) => {
     const circ = 2 * Math.PI * r;
     const total = sum(values.map((v) => v.v));
-    let off = 0, out = `<circle cx="110" cy="110" r="${r}" fill="none" stroke="var(--track)" stroke-width="22"/>`;
+    let off = 0, out = `<circle cx="110" cy="110" r="${r}" fill="none" style="stroke:var(--track)" stroke-width="22"/>`;
     if (!total) return out;
     values.forEach((v) => {
       if (!v.v) return;
       const len = v.v / total * circ;
       const gap = values.filter((x) => x.v).length > 1 ? 2 : 0;
-      out += `<circle cx="110" cy="110" r="${r}" fill="none" stroke="${v.cor}" stroke-width="22"
+      out += `<circle cx="110" cy="110" r="${r}" fill="none" style="stroke:${v.cor}" stroke-width="22"
         stroke-dasharray="${Math.max(len - gap, 0.5)} ${circ}" stroke-dashoffset="${-off}" transform="rotate(-90 110 110)"/>`;
       off += len;
     });
@@ -973,6 +1002,9 @@ document.addEventListener('click', (ev) => {
     case 'nav': setView(btn.dataset.view); break;
     case 'month': ui.month = addMonths(ui.month, Number(btn.dataset.delta)); render(); break;
     case 'month-today': ui.month = currentMonth(); render(); break;
+    case 'toggle-theme': state.theme = effectiveTheme() === 'dark' ? 'light' : 'dark'; saveState(); applyTheme(); break;
+    case 'quick-add': ui.presetCat = btn.dataset.cat; ui.entryType = 'gasto'; ui.editingId = null; setView('lancar'); break;
+    case 'see-cat': ui.filterCat = btn.dataset.cat; ui.search = ''; setView('lista'); break;
     case 'toggle-presentation': state.presentation = !state.presentation; saveState(); render(); break;
     case 'entry-type': ui.entryType = btn.dataset.type; render(); break;
     case 'repeat-last': repeatLast(); break;
@@ -1016,6 +1048,11 @@ document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') $('#toas
 /* ---------- 8. Inicialização ---------- */
 state = loadState();
 if (!storageOk) showBanner('Este navegador não permite salvar dados (talvez esteja em modo anônimo). Você pode usar o app, mas exporte antes de fechar.');
+if (window.matchMedia) {
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const follow = () => { if (!state.theme) applyTheme(); };
+  if (mq.addEventListener) mq.addEventListener('change', follow);
+}
 render();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('sw.js').catch(() => { /* offline indisponível, o app segue funcionando */ });

@@ -14,12 +14,34 @@ Site 100% estático (HTML, CSS e JavaScript puro), sem cadastro e sem backend. O
 | `icons/` | Favicon e ícones do app |
 
 ## Publicar no GitHub Pages
-1. Crie um repositório e envie estes arquivos para a **raiz** do branch `main`.
+1. Crie um repositório e envie estes arquivos para a **raiz** do branch `main` (veja "Como enviar os arquivos" abaixo).
 2. No GitHub: **Settings > Pages > Build and deployment > Deploy from a branch**.
 3. Escolha **main** e **/ (root)** e clique em **Save**.
 4. Em 1 a 2 minutos o site fica em `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`.
 
 Todos os caminhos são relativos, então funciona em subpasta sem ajustes.
+
+## Como enviar os arquivos
+O GitHub não descompacta `.zip`: descompacte antes no computador.
+
+**Pelo site (mais simples)**
+1. No repositório, clique em **Add file > Upload files**.
+2. Abra a pasta descompactada e selecione **tudo o que está dentro dela** (`index.html`, `app.js`, `style.css`, `sw.js`, `manifest.webmanifest`, `README.md` e a pasta `icons`).
+3. **Arraste** a seleção para a área da página. A pasta `icons` só entra arrastando; o botão "choose your files" não aceita pastas.
+4. Confira se `icons/` aparece na lista com os 3 arquivos, escreva a mensagem do commit e clique em **Commit changes**.
+
+Não arraste a pasta `orcamento-pet` inteira: os arquivos ficariam numa subpasta e o site não abriria.
+
+**Pelo terminal**
+```bash
+cd orcamento-pet
+git init
+git add .
+git commit -m "Primeira versão do app de orçamento do minicurso"
+git branch -M main
+git remote add origin https://github.com/SEU-USUARIO/orcamento-pet-eletrica.git
+git push -u origin main
+```
 
 ## Testar localmente
 O service worker não funciona abrindo o arquivo direto (`file://`). Use um servidor simples na pasta do projeto:
@@ -38,5 +60,5 @@ Os dados das pessoas não são afetados por atualizações. Se mudar o formato d
 
 ## Onde mexer
 - Categorias, percentuais sugeridos, descrições e exemplos: constante `CATS` no início de `app.js`.
-- Cores: variáveis em `:root` no `style.css`.
+- Cores: variáveis no topo do `style.css`. Há um bloco para o tema claro (`:root`) e outro para o escuro (`:root[data-theme="dark"]`); a cor de cada categoria é `--cat-...` nos dois.
 - Dados de demonstração: função `loadExample()` em `app.js`.

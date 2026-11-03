@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Orçamento PET Elétrica</title>
-  <meta name="description" content="Controle de orçamento pessoal do minicurso de Planejamento Financeiro do PET Elétrica (UFU). Funciona offline, sem cadastro.">
-  <meta name="theme-color" content="#363636">
+  <title>Meu orçamento</title>
+  <meta name="description" content="Controle de orçamento pessoal do minicurso de Planejamento Financeiro. Funciona offline, sem cadastro.">
+  <meta name="theme-color" content="#111923">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -16,12 +16,16 @@
 
   <header class="topbar">
     <div class="brand">
-      <img src="icons/icon.svg" alt="" width="32" height="32">
-      <span class="brand-text"><span>Orçamento</span><strong>PET Elétrica</strong></span>
+      <img src="icons/icon.svg" alt="" width="30" height="30">
+      <strong class="brand-name">Meu orçamento</strong>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn-ghost" data-action="nav" data-view="ajuda">Como usar</button>
-      <button type="button" class="btn-ghost" id="btn-apresentacao" data-action="toggle-presentation" aria-pressed="false">Modo apresentação</button>
+      <button type="button" class="btn-ghost" data-action="nav" data-view="ajuda">Ajuda</button>
+      <button type="button" class="btn-ghost" id="btn-tema" data-action="toggle-theme" aria-label="Mudar para o modo escuro">
+        <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span class="tema-txt">Modo escuro</span></button>
+      <button type="button" class="btn-ghost only-wide" id="btn-apresentacao" data-action="toggle-presentation" aria-pressed="false">Modo apresentação</button>
     </div>
   </header>
 
@@ -29,11 +33,21 @@
 
   <div class="layout">
     <nav id="app-nav" class="app-nav" aria-label="Seções do app">
-      <button type="button" data-action="nav" data-view="painel">Painel</button>
-      <button type="button" data-action="nav" data-view="lancar">Lançar</button>
-      <button type="button" data-action="nav" data-view="lista">Lançamentos</button>
-      <button type="button" data-action="nav" data-view="graficos">Gráficos</button>
-      <button type="button" data-action="nav" data-view="orcamento">Orçamento</button>
+      <button type="button" data-action="nav" data-view="painel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Painel</span></button>
+      <button type="button" data-action="nav" data-view="lancar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>Lançar</span></button>
+      <button type="button" data-action="nav" data-view="lista">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <span>Lançamentos</span></button>
+      <button type="button" data-action="nav" data-view="graficos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15.5 3.6A9 9 0 0 1 20.4 8.5h-4.9z"/></svg>
+        <span>Gráficos</span></button>
+      <button type="button" data-action="nav" data-view="orcamento">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>
+        <span>Orçamento</span></button>
     </nav>
 
     <div class="content">
@@ -50,6 +64,10 @@
       </footer>
     </div>
   </div>
+
+  <button type="button" id="fab" class="fab" data-action="nav" data-view="lancar" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Lançar gasto
+  </button>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
